@@ -13,77 +13,203 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>โปรแกรมคำนวณ VAT + หัก ณ ที่จ่าย พร้อม comma ใน input</title>
+<title>โปรแกรมคำนวณหัก ณ ที่จ่าย แบ่งงวดชำระ</title>
 <link href="style.css" rel="stylesheet" />
 <script defer src="script.js"></script>
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <!-- Tailwind CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Prompt', sans-serif; }
+</style>
 </head>
-<body class="bg-gray-50 p-6 font-sans">
+<body class="bg-gray-50 p-6" style="font-family: 'Prompt', sans-serif;">
 
   <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
-    <h1 class="text-2xl font-bold mb-6 text-center">โปรแกรมคำนวณ VAT + หัก ณ ที่จ่าย 3% </h1>
+    <!-- Alert System -->
+    <div id="alertContainer" class="mb-4 hidden">
+      <div id="alertBox" class="p-4 rounded-lg flex items-center space-x-3">
+        <span id="alertIcon"></span>
+        <span id="alertMessage"></span>
+        <button id="alertClose" class="ml-auto text-xl font-bold">&times;</button>
+      </div>
+    </div>
+
+    <h1 class="text-3xl font-bold mb-8 text-center text-blue-800">โปรแกรมคำนวณหัก ณ ที่จ่าย แบ่งงวดชำระ</h1>
+    
+    <div class="bg-blue-50 p-4 rounded-lg mb-6">
+      <p class="text-center text-blue-700 font-medium">💡 คำนวณยอดชำระแบ่งเป็นงวด พร้อมหัก VAT และภาษี ณ ที่จ่าย</p>
+    </div>
 
     <form id="calcForm" class="space-y-6" autocomplete="off">
 
       <div>
-        <label for="totalBeforeVAT" class="block font-semibold mb-1">ยอดรวมก่อน VAT (บาท)</label>
+        <label for="totalBeforeVAT" class="block text-lg font-semibold mb-2 text-gray-800">
+          📊 จำนวนเงิน (บาท)
+        </label>
         <input type="text" id="totalBeforeVAT" required
-          class="w-full p-2 border border-gray-300 rounded" placeholder="เช่น 733,120.00" value="" />
+          class="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+          placeholder="เช่น 1,000,000" value="" />
+        <small class="text-gray-600">💰 ใส่จำนวนเงิน (แบบปกติ/ไม่หักภาษี = ก่อน VAT, คำนวณย้อนกลับ = รวม VAT แล้ว)</small>
       </div>
 
       <div>
-        <label for="calculationMethod" class="block font-semibold mb-1">วิธีคำนวณ VAT + หัก ณ ที่จ่าย</label>
-        <select id="calculationMethod" class="w-full p-2 border border-gray-300 rounded" required>
-          <option value="A" selected>หัก ณ ที่จ่าย 3% จากยอดก่อน VAT (มาตรฐาน)</option>
-          <option value="B">หัก ณ ที่จ่าย 3% จากยอดรวม (ยอดก่อน VAT + VAT)</option>
-          <option value="C">หัก ณ ที่จ่าย 3% จากยอดรวม และ VAT ถูกหัก ณ ที่จ่ายด้วย</option>
-          <option value="D">ไม่หัก ณ ที่จ่าย (ยอดรวม = ยอดก่อน VAT + VAT)</option>
-          <option value="E">หัก ณ ที่จ่าย 3% จากยอดรวม แต่ VAT ไม่ถูกหัก ณ ที่จ่าย</option>
+        <label for="calculationMethod" class="block text-lg font-semibold mb-2 text-gray-800">
+          ⚙️ วิธีคำนวณ
+        </label>
+        <select id="calculationMethod" class="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+          <option value="A" selected>🔹 จากราคาก่อน VAT</option>
+          <option value="B">🔸 จากราคารวม VAT</option>
+          <option value="C">🔷 จากราคารับสุทธิ รวม VAT รวม หัก ณ ที่จ่ายในยอด</option>
         </select>
+        <small class="text-gray-600">🎯 เลือกวิธีที่ต้องการ</small>
       </div>
 
-      <div class="flex items-center justify-between mb-2">
-        <label class="font-semibold">จำนวนงวด</label>
-        <div class="space-x-2">
-          <button type="button" id="addInstallment" class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600">เพิ่มงวด</button>
-          <button type="button" id="removeInstallment" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">ลดงวด</button>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="whtRate" class="block text-lg font-semibold mb-2 text-gray-800">
+            📋 อัตราหัก ณ ที่จ่าย (%)
+          </label>
+          <input type="text" id="whtRate" required
+            class="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+            placeholder="3" value="3" />
+          <small class="text-gray-600">🏛️ ปกติใช้ 3%</small>
+        </div>
+
+        <div>
+          <label for="vatRate" class="block text-lg font-semibold mb-2 text-gray-800">
+            🧾 อัตรา VAT (%)
+          </label>
+          <input type="text" id="vatRate" required
+            class="w-full p-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+            placeholder="7" value="7" />
+          <small class="text-gray-600">📊 ปกติใช้ 7%</small>
         </div>
       </div>
 
-      <div id="installmentsInputs" class="max-h-60 overflow-y-auto border border-gray-300 rounded p-4 space-y-3">
-        <!-- input งวดจะถูกเพิ่มที่นี่ -->
+      <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+        <div class="flex items-center justify-between mb-3">
+          <label class="text-lg font-semibold text-gray-800">📅 แบ่งชำระเป็นงวด</label>
+          <div class="space-x-2">
+            <button type="button" id="addInstallment" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-medium">
+              ➕ เพิ่ม
+            </button>
+            <button type="button" id="removeInstallment" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-medium">
+              ➖ ลบ
+            </button>
+            <button type="button" id="equalInstallments" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-medium">
+              ⚡ แบ่งเท่าๆ
+            </button>
+          </div>
+        </div>
+
+        <div id="installmentsInputs" class="max-h-60 overflow-y-auto border border-gray-300 rounded-lg p-4 space-y-3 bg-white">
+          <!-- input งวดจะถูกเพิ่มที่นี่ -->
+        </div>
+        
+        <div class="text-sm text-gray-700 mt-3">
+          <p class="font-medium">📌 วิธีใช้:</p>
+          <ul class="list-disc list-inside mt-1 space-y-1">
+            <li>เริ่มต้นด้วย 1 งวดที่ 100%</li>
+            <li>กดปุ่ม "เพิ่ม" เพื่อเพิ่มงวด (เปอร์เซ็นต์จะแบ่งอัตโนมัติ)</li>
+            <li>สามารถแก้ไขเปอร์เซ็นต์แต่ละงวดได้ (รวมต้องเท่ากับ 100%)</li>
+            <li>กด "แบ่งเท่าๆ" เพื่อกลับมาแบ่งเท่าๆ กัน</li>
+            <li>สามารถเพิ่มงวดได้สูงสุด 20 งวด</li>
+          </ul>
+        </div>
       </div>
 
       <button type="submit"
-        class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">คำนวณ</button>
+        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 text-xl font-bold rounded-lg hover:from-blue-700 hover:to-purple-700 transition shadow-lg">
+        🚀 คำนวณผลลัพธ์
+      </button>
+      
+      <!-- Quick Actions -->
+      <div class="flex justify-center gap-3 mt-4">
+        <button type="button" id="resetForm" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm">
+          🔄 เริ่มใหม่
+        </button>
+        <button type="button" id="exportResults" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm hidden">
+          📊 ส่งออก Excel
+        </button>
+      </div>
     </form>
 
-    <div id="result" class="mt-8 hidden overflow-x-auto">
-      <h2 class="text-xl font-bold mb-4 text-center">ผลลัพธ์การคำนวณ</h2>
-      <table class="min-w-full border border-gray-300 rounded-lg overflow-hidden text-sm">
-        <thead class="bg-gray-100 whitespace-nowrap">
-          <tr>
-            <th class="py-3 px-4 border-b border-gray-300 text-left">งวดชำระ</th>
-            <th class="py-3 px-4 border-b border-gray-300 text-right">ยอดก่อน VAT (บาท)</th>
-            <th class="py-3 px-4 border-b border-gray-300 text-right">VAT 7% (บาท)</th>
-            <th class="py-3 px-4 border-b border-gray-300 text-right">หัก ณ ที่จ่าย 3% (บาท)</th>
-            <th class="py-3 px-4 border-b border-gray-300 text-right">ยอดชำระสุทธิ (บาท)</th>
-          </tr>
-        </thead>
-        <tbody id="resultBody" class="whitespace-nowrap"></tbody>
-        <tfoot class="bg-gray-100 font-semibold">
-          <tr>
-            <td class="py-3 px-4 border-t border-gray-300">รวม</td>
-            <td class="py-3 px-4 border-t border-gray-300 text-right" id="sumBeforeVAT"></td>
-            <td class="py-3 px-4 border-t border-gray-300 text-right" id="sumVAT"></td>
-            <td class="py-3 px-4 border-t border-gray-300 text-right" id="sumWithholding"></td>
-            <td class="py-3 px-4 border-t border-gray-300 text-right" id="sumNet"></td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
+    <div id="result" class="mt-8 hidden">
+      <div class="bg-green-50 border-l-4 border-green-400 p-4 rounded mb-6">
+        <h2 class="text-2xl font-bold text-green-800 text-center">✅ ผลลัพธ์การคำนวณ</h2>
+      </div>
+      
+      <!-- Simple Summary -->
+      <div class="bg-white border-2 border-blue-200 rounded-lg p-6 mb-6">
+        <h3 class="text-xl font-bold text-blue-800 mb-4 text-center">� สรุปยอดเงิน</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="text-center p-4 bg-blue-50 rounded-lg">
+            <div class="text-sm text-blue-600 font-medium">ก่อน VAT</div>
+            <div class="text-2xl font-bold text-blue-700" id="priceBeforeVAT">0</div>
+            <div class="text-xs text-gray-500">บาท</div>
+          </div>
+          <div class="text-center p-4 bg-green-50 rounded-lg">
+            <div class="text-sm text-green-600 font-medium">รวม VAT</div>
+            <div class="text-2xl font-bold text-green-700" id="priceWithVAT">0</div>
+            <div class="text-xs text-gray-500">บาท</div>
+          </div>
+          <div class="text-center p-4 bg-red-50 rounded-lg">
+            <div class="text-sm text-red-600 font-medium">หลังหักภาษี</div>
+            <div class="text-2xl font-bold text-red-700" id="priceAfterWithholding">0</div>
+            <div class="text-xs text-gray-500">บาท</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-center gap-3 mb-6">
+        <button type="button" id="copyResults" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2">
+          📋 คัดลอก
+        </button>
+        <button type="button" id="printResults" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 flex items-center gap-2">
+          🖨️ พิมพ์
+        </button>
+      </div>
+      <!-- Detailed Table -->
+      <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div class="bg-gray-50 p-3">
+          <h4 class="font-bold text-gray-700">📋 รายละเอียดแต่ละงวด</h4>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="py-3 px-4 text-left font-medium text-gray-700">งวด</th>
+                <th class="py-3 px-4 text-right font-medium text-gray-700">ก่อน VAT</th>
+                <th class="py-3 px-4 text-right font-medium text-gray-700">VAT</th>
+                <th class="py-3 px-4 text-right font-medium text-gray-700">หัก ณ ที่จ่าย</th>
+                <th class="py-3 px-4 text-right font-medium text-gray-700">ยอดสุทธิ</th>
+              </tr>
+            </thead>
+            <tbody id="resultBody"></tbody>
+            <tfoot class="bg-blue-50 font-bold">
+              <tr>
+                <td class="py-3 px-4 text-blue-700">รวม</td>
+                <td class="py-3 px-4 text-right text-blue-700" id="sumBeforeVAT"></td>
+                <td class="py-3 px-4 text-right text-blue-700" id="sumVAT"></td>
+                <td class="py-3 px-4 text-right text-blue-700" id="sumWithholding"></td>
+                <td class="py-3 px-4 text-right text-blue-700" id="sumNet"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>    
   </div>
+
+  <!-- Copyright Footer -->
+  <footer class="mt-8 text-center text-gray-600 text-sm">
+    <p>&copy; 2025 Realist Estate. All rights reserved.</p>
+  </footer>
 
 </body>
 </html>
