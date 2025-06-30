@@ -1,0 +1,8 @@
+#installmentsInputs::-webkit-scrollbar {
+  height: 6px;
+}
+
+#installmentsInputs::-webkit-scrollbar-thumb {
+  background: #a0aec0;
+  border-radius: 3px;
+}

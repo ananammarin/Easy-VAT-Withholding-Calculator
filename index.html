@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>โปรแกรมคำนวณงวดจ่าย</title>
+  <link rel="stylesheet" href="./style.css">
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>โปรแกรมคำนวณ VAT + หัก ณ ที่จ่าย พร้อม comma ใน input</title>
+<link href="style.css" rel="stylesheet" />
+<script defer src="script.js"></script>
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-6 font-sans">
+
+  <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
+    <h1 class="text-2xl font-bold mb-6 text-center">โปรแกรมคำนวณ VAT + หัก ณ ที่จ่าย 3% </h1>
+
+    <form id="calcForm" class="space-y-6" autocomplete="off">
+
+      <div>
+        <label for="totalBeforeVAT" class="block font-semibold mb-1">ยอดรวมก่อน VAT (บาท)</label>
+        <input type="text" id="totalBeforeVAT" required
+          class="w-full p-2 border border-gray-300 rounded" placeholder="เช่น 733,120.00" value="" />
+      </div>
+
+      <div>
+        <label for="calculationMethod" class="block font-semibold mb-1">วิธีคำนวณ VAT + หัก ณ ที่จ่าย</label>
+        <select id="calculationMethod" class="w-full p-2 border border-gray-300 rounded" required>
+          <option value="A" selected>หัก ณ ที่จ่าย 3% จากยอดก่อน VAT (มาตรฐาน)</option>
+          <option value="B">หัก ณ ที่จ่าย 3% จากยอดรวม (ยอดก่อน VAT + VAT)</option>
+          <option value="C">หัก ณ ที่จ่าย 3% จากยอดรวม และ VAT ถูกหัก ณ ที่จ่ายด้วย</option>
+          <option value="D">ไม่หัก ณ ที่จ่าย (ยอดรวม = ยอดก่อน VAT + VAT)</option>
+          <option value="E">หัก ณ ที่จ่าย 3% จากยอดรวม แต่ VAT ไม่ถูกหัก ณ ที่จ่าย</option>
+        </select>
+      </div>
+
+      <div class="flex items-center justify-between mb-2">
+        <label class="font-semibold">จำนวนงวด</label>
+        <div class="space-x-2">
+          <button type="button" id="addInstallment" class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600">เพิ่มงวด</button>
+          <button type="button" id="removeInstallment" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">ลดงวด</button>
+        </div>
+      </div>
+
+      <div id="installmentsInputs" class="max-h-60 overflow-y-auto border border-gray-300 rounded p-4 space-y-3">
+        <!-- input งวดจะถูกเพิ่มที่นี่ -->
+      </div>
+
+      <button type="submit"
+        class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">คำนวณ</button>
+    </form>
+
+    <div id="result" class="mt-8 hidden overflow-x-auto">
+      <h2 class="text-xl font-bold mb-4 text-center">ผลลัพธ์การคำนวณ</h2>
+      <table class="min-w-full border border-gray-300 rounded-lg overflow-hidden text-sm">
+        <thead class="bg-gray-100 whitespace-nowrap">
+          <tr>
+            <th class="py-3 px-4 border-b border-gray-300 text-left">งวดชำระ</th>
+            <th class="py-3 px-4 border-b border-gray-300 text-right">ยอดก่อน VAT (บาท)</th>
+            <th class="py-3 px-4 border-b border-gray-300 text-right">VAT 7% (บาท)</th>
+            <th class="py-3 px-4 border-b border-gray-300 text-right">หัก ณ ที่จ่าย 3% (บาท)</th>
+            <th class="py-3 px-4 border-b border-gray-300 text-right">ยอดชำระสุทธิ (บาท)</th>
+          </tr>
+        </thead>
+        <tbody id="resultBody" class="whitespace-nowrap"></tbody>
+        <tfoot class="bg-gray-100 font-semibold">
+          <tr>
+            <td class="py-3 px-4 border-t border-gray-300">รวม</td>
+            <td class="py-3 px-4 border-t border-gray-300 text-right" id="sumBeforeVAT"></td>
+            <td class="py-3 px-4 border-t border-gray-300 text-right" id="sumVAT"></td>
+            <td class="py-3 px-4 border-t border-gray-300 text-right" id="sumWithholding"></td>
+            <td class="py-3 px-4 border-t border-gray-300 text-right" id="sumNet"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+</body>
+</html>
+<!-- partial -->
+  <script  src="./script.js"></script>
+
+</body>
+</html>
